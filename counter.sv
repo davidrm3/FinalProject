@@ -14,7 +14,7 @@ end
 
 always_comb
 begin
-	if(count == max)
+	if(count)
 		count_next = count;
 	else
 		count_next = count + 1;

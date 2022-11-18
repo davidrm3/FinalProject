@@ -1,5 +1,5 @@
 module  character ( input Reset, frame_clk, CLK,
-					input [7:0] keycode,
+					input [7:0] keycode0, keycode1,
                output [9:0]  CharX, CharY, CharS );
     
     logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
@@ -22,38 +22,35 @@ module  character ( input Reset, frame_clk, CLK,
 	 //Character step size
     parameter [9:0] Char_X_Step=1;      // Step size on the X axis
     parameter [9:0] Char_Y_Step=1;      // Step size on the Y axis
-   
-    always_ff @ (posedge Reset or posedge frame_clk )
-    begin: Move_Ball
-        if (Reset)  // Asynchronous Reset
-        begin 
-            Char_Y_Motion <= 10'd0; // Stops charcter motion in Y;
-				Char_X_Motion <= 10'd0; // Stops character motion in X;
-				Char_Y_Pos <= Char_Y_Start; // Brings character to starting Y-position
-				Char_X_Pos <= Char_X_Start; // Brings character to starting X-position
-        end
-           
-        else //collision
-        begin 
-				//first screen collisions
-				if ( (Char_Y_Pos + Char_Size) >= Char_Y_Max )  // Character is at the bottom edge, stop
-					  Char_Y_Motion <= 1'b0;
-					  
-				else if ( (Char_Y_Pos - Char_Size) <= Char_Y_Min )  // Ball is at the top edge, fall
-					  Char_Y_Motion <= -1'b0;
-			end  
-    end
-       	//module instantiation
-			char_controller state_machine(.keycode(keycode), .Char_X_Motion(Char_X_Motion), .Char_Y_Motion(Char_Y_Motion), .space_en(space_en), .jump_en(jump_en)); //controls character motion based off input
+	 
+	// Module instantiation
 							
-			counter space_counter(.RESET(space_reset), .CLK(CLK), .count_en(space_en), .max(50), .count(space_count));
-			counter jump_counter(.RESET(jump_reset), .CLK(CLK), .count_en(jump_en), .max(space_count), .count(j_count));
-			
-    assign CharX = Char_X_Pos;
+	counter space_counter(.RESET(count_reset), .CLK(CLK), .count_en(space_en), .count(space_count));
+	counter jump_counter(.RESET(count_reset), .CLK(CLK), .count_en(jump_en), .count(j_count));	 
    
-    assign CharY = Char_Y_Pos;
-   
-    assign CharS = Char_Size;
-    
+	char_controller state_machine(.keycode0(keycode0),
+											.keycode1(keycode1),
+											.CLK(frame_clk),
+											.space_count(space_count),
+											.j_count(j_count),
+											.Char_Y_Min(Char_Y_MIN),
+											.Char_Y_Max(Char_Y_Max),
+											.reset(Reset),
+											.Char_Size(Char_Size),
+											.count_reset(count_reset),
+											.Char_X_Motion(Char_X_Motion), 
+											.Char_Y_Motion(Char_Y_Motion),
+											.Char_X_Pos(Char_X_Pos),
+											.Char_Y_Pos(Char_Y_Pos),
+											.space_en(space_en), 
+											.jump_en(jump_en), 
+											); //controls character motion based off input
+								
+	assign CharX = Char_X_Pos;
+
+	assign CharY = Char_Y_Pos;
+
+	assign CharS = Char_Size;
+ 
 
 endmodule
