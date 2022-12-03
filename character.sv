@@ -1,6 +1,7 @@
 module  character ( input Reset, frame_clk, CLK,
 					input [7:0] keycode0, keycode1,
-               output [9:0]  CharX, CharY, CharS );
+               output [9:0]  CharX, CharY, CharS,
+					output HEXstate);
     
     logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
 	 logic space_reset,space_en,jump_reset,jump_en;
@@ -17,7 +18,7 @@ module  character ( input Reset, frame_clk, CLK,
     parameter [9:0] Char_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Char_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Char_Y_Min=0;       // Topmost point on the Y axis
-    parameter [9:0] Char_Y_Max=479;     // Bottommost point on the Y axis
+    parameter [9:0] Char_Y_Max=300;     // Bottommost point on the Y axis originally 479
 	 
 	 //Character step size
     parameter [9:0] Char_X_Step=1;      // Step size on the X axis
@@ -44,6 +45,7 @@ module  character ( input Reset, frame_clk, CLK,
 											.Char_Y_Pos(Char_Y_Pos),
 											.space_en(space_en), 
 											.jump_en(jump_en), 
+											.HEXstate(HEXstate),
 											); //controls character motion based off input
 								
 	assign CharX = Char_X_Pos;
