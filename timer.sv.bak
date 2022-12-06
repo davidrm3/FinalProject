@@ -1,0 +1,19 @@
+module timer  (input RESET,
+					input CLK,
+					input count_en,
+					output [31:0] count
+);
+
+always_ff @(posedge CLK)
+begin
+	if (RESET)
+		begin
+			count <= 0;
+		end
+	else if ((count_en == 1) && (count <= 30000000)) // ensures jump is finite
+		begin
+			count <= count + 1;
+		end
+end
+
+endmodule
