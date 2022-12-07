@@ -65,13 +65,14 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 //  REG/WIRE declarations
 //=======================================================
 	logic SPI0_CS_N, SPI0_SCLK, SPI0_MISO, SPI0_MOSI, USB_GPX, USB_IRQ, USB_RST;
-	logic HEXstate;
+	logic [3:0] HEXstate, test;
 	logic [3:0] hex_num_4, hex_num_3, hex_num_1, hex_num_0; //4 bit input hex digits
 	logic [1:0] signs;
 	logic [1:0] hundreds;
 	logic [9:0] drawxsig, drawysig, ballxsig, ballysig, ballsizesig;
 	logic [7:0] Red, Blue, Green;
 	logic [7:0] keycode0, keycode1;
+	logic [31:0] space_count,j_count;
 
 //=======================================================
 //  Structural coding
@@ -97,7 +98,8 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	//HEX drivers to convert numbers to HEX output
 	HexDriver hex_drivers(hex_4, {HEX3, HEX2, HEX1, HEX0});
 	HexDriver HexSL(.In0(HEXstate), .Out0(HEX5));
-
+	HexDriver HexKJ(.In0(test), .Out0(HEX4));
+//
 //	HexDriver hex_driver4 (hex_num_4, HEX4[6:0]);
 //	assign HEX4[7] = 1'b1;
 //	
@@ -187,6 +189,9 @@ character char(
 		.CharY(ballysig),
 		.CharS(ballsizesig),
 		.HEXstate(HEXstate),
+		.space_count(space_count),
+		.j_count(j_count),
+		.test(test)
 );
 
 color_mapper clmp(

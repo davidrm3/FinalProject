@@ -37,6 +37,7 @@ always_ff @ (posedge CLK)
 			state <= next_state;
 	end
 
+
 always_ff @ (posedge CLK)
 	begin
 		if (state == A)
@@ -68,7 +69,11 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if (keycode0 == 8'h2C)// if "space" pressed
+				else if ((keycode0 == 8'h2C) || 
+							((keycode0 == 8'h07) && (keycode1 == 8'h2C)) || 
+							((keycode0 == 8'h2C) && (keycode1 == 8'h07)) || 
+							((keycode0 == 8'h04) && (keycode1 == 8'h2C)) || 
+							((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
 					next_state = E; //crouch
 				else if (keycode0 == 8'h04)// if "A" pressed
 					next_state = D; //walk_l
@@ -81,8 +86,8 @@ count_reset = 0;
 			begin
 				if (keycode0 == 8'h07)
 					next_state = C; //walk_r
-				else if (keycode0 == 8'h2C)// if "space" pressed
-					next_state = F; //jump
+				else if (((keycode0 == 8'h07) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h07)))// if "space" pressed
+					next_state = E; //crouch
 				else if (keycode0 == 8'h00)
 					next_state = B; //idle
 			end
@@ -90,8 +95,8 @@ count_reset = 0;
 			begin
 				if (keycode0 == 8'h04)
 					next_state = D; //walk_l
-				else if (keycode0 == 8'h2C)// if "space" pressed
-					next_state = F; //jump
+				else if (((keycode0 == 8'h04) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
+					next_state = E; //crouch
 				else if (keycode0 == 8'h00)
 					next_state = B; //idle
 			end

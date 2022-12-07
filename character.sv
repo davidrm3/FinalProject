@@ -1,12 +1,22 @@
 module  character ( input Reset, frame_clk, CLK,
 					input [7:0] keycode0, keycode1,
                output [9:0]  CharX, CharY, CharS,
-					output [3:0] HEXstate,
+					output [3:0] HEXstate,test,
 					output logic [31:0] space_count,j_count, arc_count);
     
     logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
 	 logic space_reset,space_en,jump_reset,jump_en, arc_reset, arc_en;
 	 
+	 always_comb
+	 begin
+		if (( (Char_X_Pos - Char_Size) <= Char_X_Min ) ||
+			( (Char_X_Pos + Char_Size) >= Char_X_Max ))
+			begin
+				test = 4'b0001;
+			end
+		else
+			test = 4'b0000;
+	 end
 	 
 	 // Character starting point for each screen
     parameter [9:0] Char_X_Start=320;  // Center position on the X axis
@@ -16,7 +26,7 @@ module  character ( input Reset, frame_clk, CLK,
 	 
 	 //Character shape
 	 assign Char_Size = 4;  // assigns the value 4 as a 10-digit binary number, ie "0000000100"
-    parameter [9:0] Char_X_Min=0;       // Leftmost point on the X axis
+    parameter [9:0] Char_X_Min=20;       // Leftmost point on the X axis
     parameter [9:0] Char_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Char_Y_Min=0;       // Topmost point on the Y axis
     parameter [9:0] Char_Y_Max=300;     // Bottommost point on the Y axis originally 479
@@ -27,10 +37,13 @@ module  character ( input Reset, frame_clk, CLK,
 	 
 	// Module instantiation
 							
-	counter space_counter(.RESET(count_reset), .CLK(frame_clk), .enable (space_en), .max(35), .multi(15), .sec(space_count));
-	counter jump_counter(.RESET(count_reset), .CLK(frame_clk), .enable(jump_en), .max(35), .multi(15), .sec(j_count));	 
-	counter arc(.RESET(count_reset), .CLK(frame_clk), .enable(arc_en), .max(6), .multi(15), .sec(arc_count));	
+	counter space_counter(.RESET(count_reset), .CLK(frame_clk), .enable (space_en), .max(5), .multi(30), .sec(space_count));
+	counter jump_counter(.RESET(count_reset), .CLK(frame_clk), .enable(jump_en), .max(5), .multi(30), .sec(j_count));	 
+	counter arc(.RESET(count_reset), .CLK(frame_clk), .enable(arc_en), .max(6), .multi(15), .sec(arc_count));
+//	counter wind_counter(.RESET(), .CLK(), .enable(), .max(5), .multi(60), .sec(wind_count))
    
+	
+	
 	char_controller state_machine(.keycode0(keycode0),
 											.keycode1(keycode1),
 											
