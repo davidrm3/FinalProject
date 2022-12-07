@@ -1,8 +1,7 @@
 module char_controller(input [7:0] keycode0, keycode1,
 							  input CLK,
 							  input [31:0] j_count, space_count, arc_count,
-							  input [9:0] Char_Y_Min, Char_Y_Max,
-							  input [9:0] Char_X_Min, Char_X_Max,
+							  input left_collide, right_collide, bottom_collide, side_collide,
 							  input reset,
 							  input Char_Size,
 							  output count_reset,
@@ -75,29 +74,29 @@ count_reset = 0;
 							((keycode0 == 8'h04) && (keycode1 == 8'h2C)) || 
 							((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
 					next_state = E; //crouch
-				else if (keycode0 == 8'h04)// if "A" pressed
+				else if ((keycode0 == 8'h04) && (!left_collide))// if "A" pressed
 					next_state = D; //walk_l
-				else if (keycode0 == 8'h07)// if "D" pressed
+				else if ((keycode0 == 8'h07) && (!right_collide))// if "D" pressed
 					next_state = C; //walk_r
 				else
 					next_state = B; //idle
 			end
 		C: //walk_r
 			begin
-				if (keycode0 == 8'h07)
+				if ((keycode0 == 8'h07) & (!right_collide))
 					next_state = C; //walk_r
 				else if (((keycode0 == 8'h07) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h07)))// if "space" pressed
 					next_state = E; //crouch
-				else if (keycode0 == 8'h00)
+				else if ((keycode0 == 8'h00) || (right_collide))
 					next_state = B; //idle
 			end
 		D: //walk_l
 			begin
-				if (keycode0 == 8'h04)
+				if ((keycode0 == 8'h04) && (!left_collide))
 					next_state = D; //walk_l
 				else if (((keycode0 == 8'h04) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
 					next_state = E; //crouch
-				else if (keycode0 == 8'h00)
+				else if ((keycode0 == 8'h00) || (left_collide))
 					next_state = B; //idle
 			end
 		E: //crouch
@@ -126,14 +125,14 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if ((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) // if character hits floor
+				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle
 			end
 		H: //jump_l
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if ( (Char_X_Pos - Char_Size) <= Char_X_Min )// if hit left edge then bounce right
+				else if (left_collide)// if hit left edge then bounce right
 					next_state = J;
 				else if (j_count >= space_count)
 					next_state = I; //arc_l
@@ -142,16 +141,16 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if ( (Char_X_Pos - Char_Size) <= Char_X_Min ) // if hit left edge then bounce right
+				else if (left_collide) // if hit left edge then bounce right
 					next_state = K;
-				else if ((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) // if character hits floor
+				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle
 			end
 		J: //jump_r
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if ( (Char_X_Pos + Char_Size) >= Char_X_Max )// if hit right edge then bounce left
+				else if (right_collide)// if hit right edge then bounce left
 					next_state = H;
 				else if (j_count >= space_count)
 					next_state = K; //peak_r
@@ -160,9 +159,9 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart
-				else if ( (Char_X_Pos + Char_Size) >= Char_X_Max )// if hit right edge then bounce left
+				else if (right_collide)// if hit right edge then bounce left
 					next_state = I;
-				else if ((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) // if character hits floor
+				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle
 			end
 	endcase
@@ -176,7 +175,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 0;
 				count_reset = 1;
-				HEXstate = 4'b0000;
+				HEXstate = 4'b0000; //0
 			end
 		B: //idle
 			begin
@@ -186,7 +185,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 0;
 				count_reset = 1;
-				HEXstate = 4'b0001;
+				HEXstate = 4'b0001; //1
 			end
 		C: //walk_r
 			begin
@@ -196,7 +195,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 0;
 				count_reset = 1;
-				HEXstate = 4'b0010;
+				HEXstate = 4'b0010; //2
 			end
 		D: //walk_l
 			begin
@@ -206,7 +205,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 0;
 				count_reset = 1;
-				HEXstate = 4'b0011;
+				HEXstate = 4'b0011; //3
 			end
 		E: //crouch
 			begin
@@ -216,7 +215,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 0;
 				count_reset = 0;
-				HEXstate = 4'b0100;
+				HEXstate = 4'b0100; //4
 			end
 		F: //jump
 			begin
@@ -226,7 +225,7 @@ count_reset = 0;
 				jump_en = 1;
 				arc_en = 0;
 				count_reset = 0;
-				HEXstate = 4'b0101;
+				HEXstate = 4'b0101; //5
 			end
 		G: //arc
 			begin
@@ -236,7 +235,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 1;
 				count_reset = 0;
-				HEXstate = 4'b0110;
+				HEXstate = 4'b0110; //6
 			end			
 		H: //jump_l
 			begin
@@ -246,7 +245,7 @@ count_reset = 0;
 				jump_en = 1;
 				arc_en = 0;
 				count_reset = 0;
-				HEXstate = 4'b0101;
+				HEXstate = 4'b0111; //7
 			end
 		I: //arc_l
 			begin
@@ -256,7 +255,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 1;
 				count_reset = 0;
-				HEXstate = 4'b0110;
+				HEXstate = 4'b1000; //8
 			end	
 		J: //jump_r
 			begin
@@ -266,7 +265,7 @@ count_reset = 0;
 				jump_en = 1;
 				arc_en = 0;
 				count_reset = 0;
-				HEXstate = 4'b0101;
+				HEXstate = 4'b1001; //9
 			end
 		K: //arc_r
 			begin
@@ -276,7 +275,7 @@ count_reset = 0;
 				jump_en = 0;
 				arc_en = 1;
 				count_reset = 0;
-				HEXstate = 4'b0110;
+				HEXstate = 4'b1010; //A
 			end	
 	endcase
 end

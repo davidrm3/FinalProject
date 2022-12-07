@@ -6,17 +6,7 @@ module  character ( input Reset, frame_clk, CLK,
     
     logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
 	 logic space_reset,space_en,jump_reset,jump_en, arc_reset, arc_en;
-	 
-	 always_comb
-	 begin
-		if (( (Char_X_Pos - Char_Size) <= Char_X_Min ) ||
-			( (Char_X_Pos + Char_Size) >= Char_X_Max ))
-			begin
-				test = 4'b0001;
-			end
-		else
-			test = 4'b0000;
-	 end
+	 logic right_collide , left_collide, top_collide, bottom_collide, diagonal_collide;
 	 
 	 // Character starting point for each screen
     parameter [9:0] Char_X_Start=320;  // Center position on the X axis
@@ -29,7 +19,7 @@ module  character ( input Reset, frame_clk, CLK,
     parameter [9:0] Char_X_Min=20;       // Leftmost point on the X axis
     parameter [9:0] Char_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Char_Y_Min=0;       // Topmost point on the Y axis
-    parameter [9:0] Char_Y_Max=300;     // Bottommost point on the Y axis originally 479
+    parameter [9:0] Char_Y_Max=405;     // Bottommost point on the Y axis originally 479
 	 
 	 //Character step size
     parameter [9:0] Char_X_Step=1;      // Step size on the X axis
@@ -42,7 +32,50 @@ module  character ( input Reset, frame_clk, CLK,
 	counter arc(.RESET(count_reset), .CLK(frame_clk), .enable(arc_en), .max(6), .multi(15), .sec(arc_count));
 //	counter wind_counter(.RESET(), .CLK(), .enable(), .max(5), .multi(60), .sec(wind_count))
    
-	
+	//collsion calculation
+	 always_comb
+	 begin
+		if ((Char_X_Pos - Char_Size) <= Char_X_Min) //checks to see if char touches left side 
+			begin
+			left_collide = 1;
+			right_collide = 0;
+			bottom_collide = 0;
+			top_collide = 0;
+			test = 4'b0001;
+			end
+		else if ((Char_X_Pos + Char_Size) >= Char_X_Max) //checks to see if char touches right side
+			begin
+			left_collide = 0;
+			right_collide = 1;
+			bottom_collide = 0;
+			top_collide = 0;
+			test = 4'b0010;				
+			end
+		else if ((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) //checks to see if char touches the bottom 
+			begin
+			left_collide = 0;
+			right_collide = 0;
+			bottom_collide = 1;
+			top_collide = 0;
+			test = 4'b0000;
+			end
+		else if ((Char_Y_Pos - Char_Size) <= Char_Y_Min ) //checks to see if char touches the top
+			begin
+			left_collide = 0;
+			right_collide = 0;
+			bottom_collide = 0;
+			top_collide = 1;
+			test = 4'b0010;
+			end
+		else
+			begin
+			left_collide = 0;
+			right_collide = 0;
+			bottom_collide = 0;
+			top_collide = 0;
+			test = 4'b0000;
+			end
+	 end
 	
 	char_controller state_machine(.keycode0(keycode0),
 											.keycode1(keycode1),
@@ -53,11 +86,11 @@ module  character ( input Reset, frame_clk, CLK,
 											.j_count(j_count),
 											.arc_count(arc_count),
 											
-											.Char_Y_Min(Char_Y_Min),
-											.Char_Y_Max(Char_Y_Max),
-											.Char_X_Min(Char_X_Min),
-											.Char_X_Max(Char_X_Max),
-											
+											.left_collide(left_collide),
+											.right_collide(right_collide),
+											.bottom_collide(bottom_collide),
+											.side_collide(side_collide),
+													
 											.reset(Reset),
 											.Char_Size(Char_Size),
 											.count_reset(count_reset),
