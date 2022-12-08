@@ -11,7 +11,7 @@ module touch_tb(input logic [9:0] Char_X_Pos, Char_Y_Pos, Char_Size, Char_X_Moti
 
 always_comb
 	begin
-		if (Char_Y_Pos - Char_Size - 5) <= 5) //character touches top of the screen
+		if ((Char_Y_Pos - Char_Size - 5) <= 5) //character touches top of the screen
 			begin
 				ts_collide = 1;
 			end
@@ -20,11 +20,10 @@ always_comb
 				ts_collide = 0;
 			end
 	end
-end
 
 always_comb
 	begin
-		if (Char_Y_Pos + Char_Size + 5) >= 470) //character touches bottom of the screen
+		if ((Char_Y_Pos + Char_Size + 5) >= 470) //character touches bottom of the screen
 			begin
 				bs_collide = 1;
 			end
@@ -33,7 +32,6 @@ always_comb
 				bs_collide = 0;
 			end
 	end
-end
 
 endmodule
 
@@ -56,7 +54,7 @@ always_comb
 			((Char_X_Pos - Char_Size) < 532)) ||
 			
 			(((Char_Y_Pos + Char_Size + 5) >= 80) && //character touches top edge of top platform
-			((Char_Y_Pos - Char_Size - 5) <= 130) &&
+			((Char_Y_Pos - Char_Size - 5) <= 105) &&
 			((Char_X_Pos + Char_Size) > 265) && 
 			((Char_X_Pos - Char_Size) < 378)))
 			begin
@@ -65,6 +63,21 @@ always_comb
 		else
 			begin
 				bottom_collide = 0;
+			end
+	end
+
+always_comb //any collision with a ceiling
+	begin
+		if (((Char_Y_Pos - Char_Size - 5) <= 130) && //character touches bottom edge of top platform
+			((Char_Y_Pos + Char_Size + 5) > 106) &&
+			((Char_X_Pos + Char_Size) > 265) &&
+			((Char_X_Pos - Char_Size) < 378))
+			begin
+				top_collide = 1;
+			end
+		else
+			begin
+				top_collide = 0;
 			end
 	end
 

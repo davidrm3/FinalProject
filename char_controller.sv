@@ -1,12 +1,12 @@
 module char_controller(input [7:0] keycode0, keycode1,
 							  input CLK,
-							  input [31:0] j_count, space_count, arc_count,
-							  input left_collide, right_collide, bottom_collide, side_collide,
+							  input [31:0] j_count, space_count, arc_count, fall_count,
+							  input left_collide, right_collide, bottom_collide, side_collide, ts_collide, bs_collide,
 							  input reset,
 							  input Char_Size,
 							  output count_reset,
 							  output logic [9:0] Char_X_Motion, Char_Y_Motion, Char_X_Pos, Char_Y_Pos,
-							  output logic space_en, jump_en, arc_en,
+							  output logic space_en, jump_en, arc_en, fall_en,
 							  output [3:0] HEXstate
 );
 
@@ -21,9 +21,9 @@ enum logic [3:0] {A, //restart
 						I, //arc_l
 						J, //jump_r
 						K, //arc_r
-						L, //
-						M, //
-						N, //
+						L, //fall
+						M, //fall_r
+						N, //fall_l
 						O, //
 						P //
 						}	state, next_state;	
@@ -42,7 +42,12 @@ always_ff @ (posedge CLK)
 		if (state == A)
 			begin
 				Char_X_Pos <= 320;
-				Char_Y_Pos <= 240;				
+				Char_Y_Pos <= 410;				
+			end
+		else if (ts_collide)
+			begin
+				Char_X_Pos <= Char_X_Pos;
+				Char_Y_Pos <= 471;
 			end
 		else
 			begin
@@ -74,30 +79,39 @@ count_reset = 0;
 							((keycode0 == 8'h04) && (keycode1 == 8'h2C)) || 
 							((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
 					next_state = E; //crouch
-				else if ((keycode0 == 8'h04) && (!left_collide))// if "A" pressed
+				else if ((keycode0 == 8'h07) && (!left_collide) && (!bottom_collide)) // if not on platform and going right
+					next_state = M; //fall_r
+				else if ((keycode0 == 8'h04) && (!left_collide) && (!bottom_collide)) // if not on platform and going left
+					next_state = N; //fall_l
+				else if ((keycode0 == 8'h04) && (!left_collide) && (bottom_collide))// if "A" pressed
 					next_state = D; //walk_l
-				else if ((keycode0 == 8'h07) && (!right_collide))// if "D" pressed
+				else if ((keycode0 == 8'h07) && (!right_collide) && (bottom_collide))// if "D" pressed
 					next_state = C; //walk_r
+				
 				else
 					next_state = B; //idle
 			end
 		C: //walk_r
 			begin
-				if ((keycode0 == 8'h07) & (!right_collide))
+				if ((keycode0 == 8'h07) & (!right_collide) && (bottom_collide))
 					next_state = C; //walk_r
 				else if (((keycode0 == 8'h07) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h07)))// if "space" pressed
 					next_state = E; //crouch
 				else if ((keycode0 == 8'h00) || (right_collide))
 					next_state = B; //idle
+				else if ((keycode0 == 8'h07) && (!left_collide) && (!bottom_collide)) // if not on platform and going right
+					next_state = M; //fall_r
 			end
 		D: //walk_l
 			begin
-				if ((keycode0 == 8'h04) && (!left_collide))
+				if ((keycode0 == 8'h04) && (!left_collide) && (bottom_collide))
 					next_state = D; //walk_l
 				else if (((keycode0 == 8'h04) && (keycode1 == 8'h2C))||((keycode0 == 8'h2C) && (keycode1 == 8'h04)))// if "space" pressed
 					next_state = E; //crouch
 				else if ((keycode0 == 8'h00) || (left_collide))
 					next_state = B; //idle
+				else if ((keycode0 == 8'h04) && (!left_collide) && (!bottom_collide)) // if not on platform and going left
+					next_state = N; //fall_l
 			end
 		E: //crouch
 			begin
@@ -164,6 +178,20 @@ count_reset = 0;
 				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle
 			end
+		M: //fall_r
+			begin
+				if (reset)
+					next_state = A; //restart
+				else if (bottom_collide) // if character hits floor
+					next_state = B; //idle
+			end
+		N: //fall_l
+			begin
+				if (reset)
+					next_state = A; //restart	
+				else if (bottom_collide) // if character hits floor
+					next_state = B; //idle			
+			end
 	endcase
 
 	unique case (state)
@@ -174,6 +202,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 1;
 				HEXstate = 4'b0000; //0
 			end
@@ -184,6 +213,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 1;
 				HEXstate = 4'b0001; //1
 			end
@@ -194,6 +224,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 1;
 				HEXstate = 4'b0010; //2
 			end
@@ -204,6 +235,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 1;
 				HEXstate = 4'b0011; //3
 			end
@@ -214,6 +246,7 @@ count_reset = 0;
 				space_en = 1;
 				jump_en = 0;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b0100; //4
 			end
@@ -224,6 +257,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 1;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b0101; //5
 			end
@@ -234,6 +268,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 1;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b0110; //6
 			end			
@@ -244,6 +279,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 1;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b0111; //7
 			end
@@ -254,6 +290,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 1;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b1000; //8
 			end	
@@ -264,6 +301,7 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 1;
 				arc_en = 0;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b1001; //9
 			end
@@ -274,9 +312,43 @@ count_reset = 0;
 				space_en = 0;
 				jump_en = 0;
 				arc_en = 1;
+				fall_en = 0;
 				count_reset = 0;
 				HEXstate = 4'b1010; //A
 			end	
+		L: //fall
+			begin
+				Char_X_Motion = 0;
+				Char_Y_Motion = 1 + fall_count;
+				space_en = 0;
+				jump_en = 0;
+				arc_en = 1;
+				fall_en = 1;
+				count_reset = 0;
+				HEXstate = 4'b1011; //b
+			end
+		M: //fall_r
+			begin
+				Char_X_Motion = 1;
+				Char_Y_Motion = 1 + fall_count;
+				space_en = 0;
+				jump_en = 0;
+				arc_en = 1;
+				fall_en = 1;
+				count_reset = 0;
+				HEXstate = 4'b1011; //b
+			end
+		N: //fall_l
+			begin
+				Char_X_Motion = -1;
+				Char_Y_Motion = 1 + fall_count;
+				space_en = 0;
+				jump_en = 0;
+				arc_en = 1;
+				fall_en = 1;
+				count_reset = 0;
+				HEXstate = 4'b1100; //C
+			end
 	endcase
 end
 endmodule
