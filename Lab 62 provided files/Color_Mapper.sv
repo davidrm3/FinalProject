@@ -19,8 +19,6 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 								input logic [10:0] background_number,
                        output logic [7:0]  Red, Green, Blue,
 							  output logic collision, 
-							  output logic top_next, //used for next level
-							  output logic bot_back, //used for falling back to old level
 							  output logic [3:0] Default1,BallDebug,PlatformDebug, BackgroundDebug,
 							  output logic [8:0] platX, platY, Plat_size);
     
@@ -38,7 +36,55 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 	 
 	 
 	 
-	 //logic for background bound signals being set to high
+//logic for background bound signals being set to high
+
+
+
+
+//drawing line
+//top screen
+		logic topline_on;
+		
+		logic [10:00] topline_x = 110;
+		logic [10:00] topline_size_x = 423;
+		logic [10:00] topline_y = 32;
+		logic [10:00] topline_size_y = 10;
+		
+		assign topline = DrawX >= topline_x && DrawX < topline_x + topline_size_x && 
+		DrawY >= topline_y && DrawY < topline_y + topline_size_y;
+		
+		 always_comb
+		 begin:topline_on_proc
+			  if ((topline)) 
+					topline_on = 1'b1;
+			  else 
+					topline_on = 1'b0;
+		  end 
+//top screen end
+
+//bottom screen
+		logic botline_on;
+		
+		logic [10:00] botline_x = 110;
+		logic [10:00] botline_size_x = 423;
+		logic [10:00] botline_y = 475;
+		logic [10:00] botline_size_y = 10;
+		
+		assign botline = DrawX >= botline_x && DrawX < botline_x + botline_size_x && 
+		DrawY >= botline_y && DrawY < botline_y + botline_size_y;
+		
+		 always_comb
+		 begin:botline_on_proc
+			  if ((botline)) 
+					botline_on = 1'b1;
+			  else 
+					botline_on = 1'b0;
+		  end 
+//bottom screen end	
+
+
+	  
+
 	 
 	 
  /* Old Ball: Generated square box by checking if the current pixel is within a square of length
@@ -142,7 +188,7 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 		  end 
 		  //plat bottom 1 end	
 	
-	
+
 
 ////////////////////////
 ////////////////////////	
@@ -169,7 +215,8 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 		  
 		  
 		  
-	
+
+		  
 	
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -177,87 +224,10 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 	
 	assign background = DrawX >=110 && DrawX <= 532 && DrawY >= 0 && DrawY <= 480;
 	
+	logic StartScreen_on, Green1_on, Green2_on, Gutter1_on, Gutter2_on, Gutter3_on, Snow1_on, Snow2_on, Snow3_on, EndScreen_on;
+	
 //procs for backgrounds	 
-    always_comb
-    begin:StartScreen_on_proc
-        if (background && background_number[0]) 
-            StartScreen_on = 1'b1;
-        else 
-            StartScreen_on = 1'b0;
-     end 
-/////////////////	  
-    always_comb
-    begin:Green1_on_proc
-        if (background && background_number[1]) 
-            Green1_on = 1'b1;
-        else 
-            Green1_on = 1'b0;
-     end 	
-//////////////
-    always_comb
-    begin:Green2_on_proc
-        if (background && background_number[2]) 
-            Green2_on = 1'b1;
-        else 
-            Green2_on = 1'b0;
-     end 	
-/////////////////
-    always_comb
-    begin:Gutter1_on_proc
-        if (background && background_number[3]) 
-            Gutter1_on = 1'b1;
-        else 
-            Gutter1_on = 1'b0;
-     end 
-////////////////
-    always_comb
-    begin:Gutter2_on_proc
-        if (background && background_number[4]) 
-            Gutter2_on = 1'b1;
-        else 
-            Gutter2_on = 1'b0;
-     end 	
-//////////////// 	 
-    always_comb
-    begin:Gutter3_on_proc
-        if (background && background_number[5]) 
-            Gutter3_on = 1'b1;
-        else 
-            Gutter3_on = 1'b0;
-     end  
-////////////////
-    always_comb
-    begin:Snow1_on_proc
-        if (background && background_number[6]) 
-            Snow1_on = 1'b1;
-        else 
-            Snow1_on = 1'b0;
-     end 
-//////////////////
-  always_comb
-    begin:Snow2_on_proc
-        if (background && background_number[7]) 
-            Snow2_on = 1'b1;
-        else 
-            Snow2_on = 1'b0;
-     end 	
-//////////////////
-  always_comb
-    begin:Snow3_on_proc
-        if (background && background_number[8]) 
-            Snow3_on = 1'b1;
-        else 
-            Snow3_on = 1'b0;
-     end 
-////////////////////
-  always_comb
-    begin:EndScreen_on_proc
-        if (background && background_number[9]) 
-            EndScreen = 1'b1;
-        else 
-            EndScreen = 1'b0;
-     end   
-	 
+
 	 
 	//define collision
 	//always comb 
@@ -283,15 +253,21 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
             platform_on = 1'b0;
      end  
 
-////background signal
-//	 always_comb
-//    begin:Background_on_proc
-//        if ((background)) 
-//            background_on = 1'b1;
-//        else 
-//            background_on = 1'b0;
-//     end   
-//	  
+//background signal
+	 always_comb
+    begin:Background_on_proc
+        if ((background)) 
+			begin
+            background_on = 1'b1;
+				defaultColor = 4'b1001; //nine
+			end	
+        else 
+			begin	
+            background_on = 1'b0;
+				defaultColor = 4'b0001; //one
+			end	
+     end   
+	  
 	  
 //collision signal attempt 	  
 	 always_comb
@@ -309,16 +285,16 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 				
      end  
 	   
-	  
-
+/////////////////////////////////////////////////////////////////////////////////////////	  
+/////////////////////////////////////////////////////////////////////////RGB drawing here !
     always_ff @ (posedge pixel_clk)
     begin:RGB_Display
-	 //
+	 //brown
 		  if(~blank)
 		  begin
-            Red <= 8'h00;
-            Green <= 8'h00;
-            Blue <= 8'h00;				
+            Red <= 8'h55;
+            Green <= 8'h33;
+            Blue <= 8'h33;				
 		  end
 	 //Orange: the ball color
 		  else if ((ball_on == 1'b1)) 
@@ -339,7 +315,7 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 					
 				end
 				
-		//plat left 1
+		//plat left 1 pink
 			else if(G_platLeft_on == 1'b1 )
 			  begin          
 					
@@ -349,7 +325,7 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 					//defaultColor = 4'b1001; //nine
 				end			
 				
-			//plat right 1
+			//plat right 1 pink
 			else if(G_platRight_on == 1'b1 )
 			  begin          
 					
@@ -359,17 +335,8 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 					//defaultColor = 4'b1001; //nine
 				end		
 				
-				//plat bottom 1
-			else if(G_platBottom_on == 1'b1 )
-			  begin          
-					
-					Red <= 8'h33;
-					Green <= 8'h55;
-					Blue <= 8'hee;
-					//defaultColor = 4'b1001; //nine
-				end		
-				
-				//plat float 1
+			
+				//plat float 1 yellow
 			else if(G_platFloat_on == 1'b1 )
 			  begin          
 					
@@ -381,11 +348,39 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 					
 				
 				
+			//top line
+		  else if ((topline_on == 1'b1)) 
+        begin 
+            Red <= 8'h55;
+            Green <= 8'hdd;
+            Blue <= 8'hff;
+			//	balldebug = 4'b0001; //1
+        end
+		//bot line
+		  else if ((topline_on == 1'b1)) 
+        begin 
+            Red <= 8'h55;
+            Green <= 8'hdd;
+            Blue <= 8'hff;
+			//	balldebug = 4'b0001; //1
+        end		
+		  
+		 	//plat bottom 1 blue
+			else if(G_platBottom_on == 1'b1 )
+			  begin          
+					
+					Red <= 8'h33;
+					Green <= 8'h55;
+					Blue <= 8'hee;
+					//defaultColor = 4'b1001; //nine
+				end		
+				 
+				
 			//new else if	
 				
 				
 				
-		  //background color 
+		  //side color 
         else if(background_on == 1'b1 )
         begin          
 				
@@ -399,15 +394,15 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 				
 			else
 				begin
-					Red <= 8'hff; 
-					Green <= 8'hff;
+					Red <= 8'h55; 
+					Green <= 8'hee;
 					//Blue = 8'h7f - DrawX[9:3];
-					Blue <= 8'hff;
+					Blue <= 8'haa;
 				end
 					     
 	end
 	
-	
+/////////////////////////////////////////////////////////////////////////////////////RGB End ^	
 	
 	
 	
@@ -416,181 +411,282 @@ module  color_mapper ( input        [9:0] BallX, BallY, DrawX, DrawY, Ball_size,
 //background assignments 	
 
 
-logic [18:0] rom_address;
-logic [8:0] rom_q;	
+logic [18:0] rom_address, rom_address_start, rom_address_green1, 
+rom_address_green2, rom_address_gutter1, rom_address_gutter2, rom_address_gutter3, 
+rom_address_snow1, rom_address_snow2, rom_address_snow3, rom_address_end;
+
+logic [8:0] rom_q, rom_q_start, rom_q_green1, rom_q_green2,
+rom_q_gutter1, rom_q_gutter2, rom_q_gutter3, rom_q_snow1, rom_q_snow2, rom_q_snow3, rom_q_end;	
 logic [3:0] palette_red, palette_green, palette_blue;	
 
-assign rom_address = (DrawX*420/640) + (DrawY*465/480 * 420);
+//assign rom_address = (DrawX*420/640) + (DrawY*465/480 * 420);
+assign rom_address = (DrawX*105/640) + (DrawY*117/480 * 105);
+//Test checker
+
+//hGreenlvl1_rom greenlvl1rom (
+//	.clock   (pixel_clk),
+//	.address (rom_address),
+//	.q       (rom_q)
+//);
+//
+//hGreenlvl1_palette greenlvl1palette (
+//	.index (rom_q),
+//	.red   (palette_red),
+//	.green (palette_green),
+//	.blue  (palette_blue)
+//);
+
+//StartScreen_rom greenlvl1rom (
+//	.clock   (pixel_clk),
+//	.address (rom_address),
+//	.q       (rom_q)
+//);
+//
+//StartScreen_palette greenlvl1palette (
+//	.index (rom_q),
+//	.red   (palette_red),
+//	.green (palette_green),
+//	.blue  (palette_blue)
+//);
 
 
-/////////////////////////////////////////////////////////
+
+
+//emf test checker
+
+
+assign rom_address_start= (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_green1 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_green2 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_gutter1 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_gutter2 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_gutter3= (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_snow1 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_snow2 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_snow3 = (DrawX*105/640) + (DrawY*117/480 * 105);
+assign rom_address_end = (DrawX*105/640) + (DrawY*117/480 * 105);
+
+/////////////////////////////////////////////////////// Star
 logic [3:0] Red_Start, Green_Start, Blue_Start;
 	StartScreen_rom startrom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_start),
+			.q(rom_q_start)
 	);
 	StartScreen_palette startpalette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_start),
+			.red(Red_Start),
+			.green(Green_Start),
+			.blue(Blue_Start)
 		);
 
 
-///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////Green1
 logic [3:0] Red_Green1, Green_Green1, Blue_Green1;
 		Greenlvl1_rom green1rom (
 			.clock   (pixel_clk),
-			.address (rom_address),
-			.q       (rom_q)
+			.address (rom_address_green1),
+			.q       (rom_q_green1)
 		);
 
 		Greenlvl1_palette green1palette (
-			.index (rom_q),
-			.red   (palette_red),
-			.green (palette_green),
-			.blue  (palette_blue)
+			.index (rom_q_green1),
+			.red   (Red_Green1),
+			.green (Green_Green1),
+			.blue  (Blue_Green1)
 		);
 
-///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////Green2
 logic [3:0] Red_Green2, Green_Green2, Blue_Green2;
 	Greenlvl2_rom green2rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_green2),
+			.q(rom_q_green2)
 	);
 		Greenlvl2_palette green2palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_green2),
+			.red(Red_Green2),
+			.green(Green_Green2),
+			.blue(Blue_Green2)
 		);
 
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////Gutter1
 logic [3:0] Red_Gutter1, Green_Gutter1, Blue_Gutter1;
 	Gutterslvl1_rom gutter1rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_gutter1),
+			.q(rom_q_gutter1)
 	);
 	Gutterslvl1_palette gutter1palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_gutter1),
+			.red(Red_Gutter1),
+			.greenGreen_Gutter1(),
+			.blue(Blue_Gutter1)
 		);
 
-/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////Gutter2
 logic [3:0] Red_Gutter2, Green_Gutter2, Blue_Gutter2;
 	Gutterslvl2_rom gutter2rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_gutter2),
+			.q(rom_q_gutter2)
 	);
 	Gutterslvl2_palette gutter2palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_gutter2),
+			.red(Red_Gutter2),
+			.green(Green_Gutter2),
+			.blue(Blue_Gutter2)
 		);
 
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////Gutter3
 logic [3:0] Red_Gutter3, Green_Gutter3, Blue_Gutter3;
 	Gutterslvl3_rom gutter3rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_gutter3),
+			.q(rom_q_gutter3)
 	);
 	Gutterslvl3_palette gutter3palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_gutter3),
+			.red(Red_Gutter3),
+			.green(Green_Gutter3),
+			.blue(Blue_Gutter3)
 		);
 
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////Snow1
 logic [3:0] Red_Snow1, Green_Snow1, Blue_Snow1;
 	Snowlvl1_rom snow1rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_snow1),
+			.q(rom_q_snow1)
 	);
 	Snowlvl1_palette snow1palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_snow1),
+			.red(Red_Snow1),
+			.green(Green_Snow1),
+			.blue(Blue_Snow1)
 		);
 
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////Snow2
 logic [3:0] Red_Snow2, Green_Snow2, Blue_Snow2;
 	Snowlvl2_rom snow2rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_snow2),
+			.q(rom_q_snow2)
 	);
 	Snowlvl2_palette snow2palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_snow2),
+			.red(Red_Snow2),
+			.green(Green_Snow2),
+			.blue(Blue_Snow2)
 		);
 
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////Snow3
 logic [3:0] Red_Snow3, Green_Snow3, Blue_Snow3;
 	Snowlvl3_rom snow3rom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_snow3),
+			.q(rom_q_snow3)
 	);
 	Snowlvl3_palette snow3palette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_snow3),
+			.red(Red_Snow3),
+			.green(Green_Snow3),
+			.blue(Blue_Snow3)
 		);
 
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////endscreen
 logic [3:0] Red_End, Green_End, Blue_End;
 	EndScreen_rom endscreenrom(
 			.clock(pixel_clk),
-			.address(rom_address),
-			.q(rom_q)
+			.address(rom_address_end),
+			.q(rom_q_end)
 	);
 	EndScreen_palette endscreenpalette(
-			index(),
-			red(),
-			green(),
-			blue()
+			.index(rom_q_end),
+			.red(Red_End),
+			.green(Green_End),
+			.blue(Blue_End)
 		);
 
 //unique case for choosing background display 
 always_comb
 	begin
-		unique case(background_number) 
+		unique case(background_number)
 			
+			//start screen
 			10'b00_0000_0001:
-			pallete red pallet snow red =
+				begin	
+					palette_blue = Blue_Start;
+					palette_green = Green_Start;
+					palette_red = Red_Start;
+				end
 			
-			10'b00_0000_0010:			
+			//Green1
+			10'b00_0000_0010:	
+				begin
+					palette_blue = Blue_Green1;
+					palette_green = Green_Green1;
+					palette_red = Red_Green1;
+				end
 			
-			10'b00_0000_0100:
-			
-			10'b00_0000_1000:
-			
-			10'b00_0001_0000:
-			
-			10'b00_0010_0000:
-			
-			10'b00_0100_0000:
-			
-			10'b00_1000_0000:
-			
-			10'b01_0000_0000:
-			
+			//Green2
+			10'b00_0000_0100:	
+				begin	
+					palette_blue = Blue_Green2;
+					palette_green = Green_Green2;
+					palette_red = Red_Green2;
+				end	
+			//Gutter1
+			10'b00_0000_1000:	
+				begin	
+					palette_blue = Blue_Gutter1;
+					palette_green = Green_Gutter1;
+					palette_red =Red_Gutter1;
+				end
+			//Gutter2
+			10'b00_0001_0000:	
+				begin
+					palette_blue = Blue_Gutter2;
+					palette_green = Green_Gutter2;
+					palette_red = Red_Gutter2;
+				end
+			//Gutter3
+			10'b00_0010_0000:	
+				begin
+					palette_blue =  Blue_Gutter3;
+					palette_green = Green_Gutter3;
+					palette_red = Red_Gutter3;
+				end
+			//Snow1
+			10'b00_0100_0000:	
+				begin
+					palette_blue = Blue_Snow1;
+					palette_green = Green_Snow1;
+					palette_red = Red_Snow1;
+				end
+			//Snow2
+			10'b00_1000_0000:	
+				begin
+					palette_blue = Blue_Snow2;
+					palette_green = Green_Snow2;
+					palette_red = Red_Snow2;
+				end
+			//Snow3
+			10'b01_0000_0000:	
+				begin
+					palette_blue = Blue_Snow3;
+					palette_green = Green_Snow3;
+					palette_red = Red_Snow3;
+				end
+			//EndScreen
 			10'b10_0000_0000:
+				begin
+					palette_blue = Blue_End;
+					palette_green = Green_End;
+					palette_red = Red_End;
+				end
 				
+			
 		endcase
 	   
 end

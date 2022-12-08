@@ -66,14 +66,15 @@ logic [3:0] Default1,BallDebug,PlatformDebug, BackgroundDebug;
 	logic [31:0] space_count,j_count;
 	
 logic [10:0] background_number;	
-logic top_screen_reached, bottom_screen_reached;
+logic ts_collide, bs_collide;
+logic [3:0] tracker;
 
 
 //=======================================================
 //  REG/WIRE declarations
 //=======================================================
 	logic SPI0_CS_N, SPI0_SCLK, SPI0_MISO, SPI0_MOSI, USB_GPX, USB_IRQ, USB_RST;
-	logic [3:0] hex_num_4, hex_num_3, hex_num_1, hex_num_0; //4 bit input hex digits
+	logic [3:0] hex_num_4, hex_num_3, hex_num_1, hex_num_0, HEXstate; //4 bit input hex digits
 	logic [1:0] signs;
 	logic [1:0] hundreds;
 	logic [9:0] drawxsig, drawysig, ballxsig, ballysig, ballsizesig;
@@ -118,11 +119,15 @@ logic top_screen_reached, bottom_screen_reached;
 //	HexDriver hex_driver1 (BallDebug, HEX1[6:0]); //1
 //	assign HEX1[7] = 1'b1;
 //	
-//	HexDriver hex_driver0 (Default1, HEX0[6:0]); //9
-//	assign HEX0[7] = 1'b1;
+	HexDriver hex_driver0 (Default1, HEX0[6:0]); //9
+	assign HEX0[7] = 1'b1;
+	
+	HexDriver hex_driver1(HEXstate, HEX5[6:0]); //9
+	assign HEX5[7] = 1'b1;
+	
+	HexDriver hex_driver2(tracker, HEX4[6:0]); //9
+	assign HEX4[7] = 1'b1;
 
-HexDriver hex_drivers(hex_4, {HEX3, HEX2, HEX1, HEX0});
-HexDriver HexSL(.In0(Hexstate), .Out0(HEX5));
 
 //	
 //	//fill in the hundreds digit as well as the negative sign
@@ -216,23 +221,26 @@ character char(
 		.CharX(ballxsig),
 		.CharY(ballysig),
 		.CharS(ballsizesig),
-		.HEXstate(),
-		.space_count(space_count),
-		.j_count(j_count),
-		.test(test)
+		.test0(test0),
+		.test1(test1),
+		.test2(test2),
+		.test3(test3),
+		.ts_collide(ts_collide),
+		.bs_collide(bs_collide)
 );
-
 
 
 
 back_controller bak(
 	.keycode0(keycode0),
 	.keycode1(keycode1),
-	.CLK(VGA_VS),
+	.CLK(VGA_VS), //changed this maybe?
 	.background_number(background_number), //used by color mapper to change backgrounds
-	.top_reached_signal(top_screen_reached),
-	.bot_reached_signal(bottom_screen_reached),
-	.HEXstate(HEXstate)
+	.HEXstate(HEXstate),
+	
+	.tracker(tracker),
+	.ts_colide(ts_collide),
+	.bs_collide(bs_collide)
 );
 
 
@@ -249,8 +257,8 @@ color_mapper clmp(
 		.collision(collision),
 		
 		.background_number(background_number),
-		.top_next(top_screen_reached),
-		.bot_back(bottom_screen_reached),
+		
+
 
 		.pixel_clk(MAX10_CLK1_50),
 		

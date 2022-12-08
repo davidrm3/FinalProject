@@ -1,8 +1,7 @@
 module back_controller(input [7:0] keycode0, keycode1,
 							  input CLK,
-							  input reset,
-							  input top_reached_signal,
-							  input bot_reached_signal,
+							  input reset, ts_colide, bs_collide,
+							  output logic [3:0] tracker,
 							  output logic [10:0] background_number, //used by color mapper to change backgrounds							 
 							  output [3:0] HEXstate
 );
@@ -18,6 +17,21 @@ module back_controller(input [7:0] keycode0, keycode1,
 							Snow3,
 							EndScreen
 							}	state, next_state;
+							
+		always_ff @ (posedge CLK)
+		begin
+				if(background_number == 10'b00_0000_0000)
+						tracker <= 0; 
+				else if (ts_colide)
+					tracker <= tracker + 1; 
+				else if(bs_collide)
+					tracker <= tracker -1;
+				else 
+					tracker <= tracker;
+		end
+		
+
+					
 							
 		always_ff @ (posedge CLK)
 		begin
@@ -42,34 +56,34 @@ module back_controller(input [7:0] keycode0, keycode1,
 			unique case(state)
 
 			StartScreen:	
-				if(~(keycode0 == 8'h2C))
-						next_state = StartScreen;		
+			//maybe tracker ==0
+				if((keycode0 == 8'h2C)) //space
+					next_state = Green1;		
 				else
-					next_state = Green1;	
+					next_state = StartScreen;	
 
 			Green1:
-				if(top_reached_signal || (keycode0 == 8'h1D))		
-					next_state = Green2;
-					
-				else
+				if((tracker == 1) || (keycode0 == 8'h1e))	//1
+					next_state = Green2;					
+				else					
 					next_state = Green1;
 				
 
 			Green2:
-				if(top_reached_signal || (keycode0 == 8'h1D))
-					next_state = Gutter1;
+				if((tracker == 2) || (keycode0 == 8'h1f)) //2
+					next_state = Gutter2;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 1))
 					next_state = Green1;
 				
 				else
 					next_state = Green2;
 				
 			Gutter1:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 3) || (keycode0 == 8'h20))  //3
 					next_state = Gutter2;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 2))
 					next_state = Green2;
 					
 				else
@@ -77,60 +91,60 @@ module back_controller(input [7:0] keycode0, keycode1,
 					
 
 			Gutter2:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 4) || (keycode0 == 8'h21)) //4
 					next_state = Gutter3;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 3))
 					next_state = Gutter1;
 					
 				else
 					next_state = Gutter2;
 				
 			Gutter3:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 5) || (keycode0 == 8'h22))  //5
 					next_state = Snow1;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 4))
 					next_state = Gutter2;
 					
 				else
 					next_state = Gutter3;
 					
 			Snow1:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 6) || (keycode0 == 8'h23))  //6
 					next_state = Snow2;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 5))
 					next_state = Gutter3;
 					
 				else
 					next_state = Snow1;
 				
 			Snow2:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 7) || (keycode0 == 8'h24))  //7
 					next_state = Snow3;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 6))
 					next_state = Snow1;
 					
 				else
 					next_state = Snow2;
 				
 			Snow3:
-				if(top_reached_signal || (keycode0 == 8'h1D))
+				if((tracker == 8) || (keycode0 == 8'h25)) //8
 					next_state = EndScreen;
 					
-				else if(bot_reached_signal)
+				else if((tracker == 7))
 					next_state = Snow2;
 					
 				else
 					next_state = Snow3;
 				
 			EndScreen:	
-				if(~(keycode0 == 8'h2C))
-						next_state = EndScreen;		
+				if((keycode0 == 8'h15)) //r
+						next_state = StartScreen;			
 				else
-					next_state = StartScreen;	
+					next_state = EndScreen;
 					
 			endcase
 
@@ -204,7 +218,7 @@ module back_controller(input [7:0] keycode0, keycode1,
 	
 			endcase		
 				
-			end
+		end
 
-			endmodule
+	endmodule
 				
