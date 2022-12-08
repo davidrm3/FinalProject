@@ -1,31 +1,98 @@
-//module  platform ( input Reset,frame_clk,
-//               output [9:0]  PlatX, PlatY, PlatS 
-//					);
-//    
-//    logic [9:0] Plat_X_Pos, Plat_Y_Pos, Plat_Size;
-//	 
-//	 // Platform starting point for each screen
+//reference
+
+//((Char_X_Pos + Char_Size) >= Char_X_Max) //checks to see if char touches right side
+//((Char_X_Pos - Char_Size) <= Char_X_Min) //checks to see if char touches left side 
+//((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) //checks to see if char touches the bottom
+//((Char_Y_Pos - Char_Size) <= Char_Y_Min ) //checks to see if char touches the top
+
+module first_screen(input logic [9:0] Char_X_Pos, Char_Y_Pos, Char_Size,
+						  output top_collide, bottom_collide, right_collide, left_collide
+);
+
+//bottom_platform
+always_comb //touching top edge of bottom platform
+	begin
+		if ((Char_Y_Pos + Char_Size) >= 407) 
+			begin
+				bottom_collide = 1;
+			end
+		else
+			begin
+				bottom_collide = 0;
+			end
+	end
+
+//left_platform
+always_comb //character touches right edge of left platform
+	begin
+		if (((Char_X_Pos - Char_Size) <= 210) && 
+			((Char_Y_Pos + Char_Size) > 240) && 
+			((Char_Y_Pos - Char_Size) < 407))
+			 begin
+				left_collide = 1;
+			 end
+		else
+			begin
+				left_collide = 0;
+			end
+	end
+always_comb
+	begin //character touches top edge of left platform
+		if (((Char_Y_Pos + Char_Size) >= 240) &&
+			((Char_X_Pos + Char_Size) > 110) &&
+			((Char_X_Pos - Char_Size) < 210))
+			begin
+				top_collide = 1;
+			end
+		else
+			begin
+				top_collide = 1;
+			end
+	end
+	
+//right_platform
+always_comb //character touches left edge of right platform
+	begin
+		if (((Char_X_Pos + Char_Size) >= 432) && 
+			((Char_Y_Pos + Char_Size) > 240) && 
+			((Char_Y_Pos - Char_Size) < 407))
+			 begin
+				right_collide = 1;
+			 end
+		else
+			begin
+				right_collide = 0;
+			end
+	end
+always_comb
+	begin //character touches top edge of right platform
+		if (((Char_Y_Pos + Char_Size) >= 240) &&
+			((Char_X_Pos + Char_Size) > 432) &&
+			((Char_X_Pos - Char_Size) < 533))
+			begin
+				top_collide = 1;
+			end
+		else
+			begin
+				top_collide = 1;
+			end
+	end
+
+//floating_platform
+	
+endmodule
+
+//module second_screen(
+//);
 //
-//	 //Character shape
-//    parameter [9:0] Plat_X_Start=320;  // Center position on the X axis
-//    parameter [9:0] Plat_Y_Start=100;  // Center position on the Y axis
-//	 assign Plat_Size = 4;  // assigns the value 4 as a 10-digit binary number, ie "0000000100"
-//	 
-////    parameter [9:0] Plat_X_Min=100;       // Leftmost point on the X axis
-////    parameter [9:0] Plat_X_Max=540;     // Rightmost point on the X axis
-////    parameter [9:0] Plat_Y_Min=0;       // Topmost point on the Y axis
-////    parameter [9:0] Plat_Y_Max=320;     // Bottommost point on the Y axis
-//   // parameter [9:0] Ball_X_Step=1;      // Step size on the X axis
-//    //parameter [9:0] Ball_Y_Step=1;      // Step size on the Y axis
-//	 
-//	 
-//   
-//       
-//    assign PlatX = Plat_X_Start;
-//   
-//    assign PlatY = Plat_Y_Start;
-//   
-//    assign PlatS = Plat_Size;
-//    
+//endmodule
+//
+//module third_screen(
+//);
+//
+//endmodule
+//
+//module fourth_screen(
+//);
 //
 //endmodule

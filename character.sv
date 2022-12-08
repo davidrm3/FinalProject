@@ -1,126 +1,141 @@
-//module  character ( input Reset, frame_clk,
-//					input [7:0] keycode,
-//               output [9:0]  CharX, CharY, CharS );
-//    
-//    logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
-//	 
-//	 // Character starting point for each screen
-//	 // Jump value
-//	 
-//	 //Character shape
-//    parameter [9:0] Char_X_Start=320;  // Center position on the X axis
-//    parameter [9:0] Char_Y_Start=240;  // Center position on the Y axis
-//	 assign Ball_Size = 4;  // assigns the value 4 as a 10-digit binary number, ie "0000000100"
-//	 
-//    parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
-//    parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
-//    parameter [9:0] Ball_Y_Min=0;       // Topmost point on the Y axis
-//    parameter [9:0] Ball_Y_Max=479;     // Bottommost point on the Y axis
-//    parameter [9:0] Ball_X_Step=1;      // Step size on the X axis
-//    parameter [9:0] Ball_Y_Step=1;      // Step size on the Y axis
-//   
-//    always_ff @ (posedge Reset or posedge frame_clk )
-//    begin: Move_Ball
-//        if (Reset)  // Asynchronous Reset
-//        begin 
-//            Char_Y_Motion <= 10'd0; //Ball_Y_Step;
-//				Char_X_Motion <= 10'd0; //Ball_X_Step;
-//				Char_Y_Pos <= Char_Y_Start; // Brings character to starting Y-position
-//				Char_X_Pos <= Char_X_Start; // Brings character to starting X-position
-//        end
-//           
-//        else //collision
-//        begin 
-//				//screen change
-//				if ( (Ball_Y_Pos + Ball_Size) >= Ball_Y_Max )  // Character is at the bottom edge, switch to old screen
-//					  Ball_Y_Motion <= (~ (Ball_Y_Step) + 1'b1);  // 2's complement.
-//					  
-//				else if ( (Ball_Y_Pos - Ball_Size) <= Ball_Y_Min )  // Ball is at the top edge, switch to new screen
-//					  Ball_Y_Motion <= Ball_Y_Step;
-//				
-//				//platform collision top/bottom
-//				else if ( (Char_Y_Pos - Char_Size) >= Plat_Y_Max) // Character is  at the top of platform, stop
-//						Char_Y_Motion <= 0;
-//				else if ( (Char_Y_Pos + Char_Size) <= Plat_Y_Min) // Character hits bottom of platform, fall
-//						Char_Y_Motion <= 1;
-//				else if ( (Char_X_Pos - Char_Size) >= Plat_X_Max) // Character is  at the right of platform, fall
-//						begin
-//						Char_X_Motion <= 0;
-//						Char_Y_Motion <= 1;
-//						end
-//						
-//				else if ( (Char_X_Pos + Char_Size) <= Plat_X_Min){ // Character hits left of platform, fall
-//						begin
-//						Char_X_Motion <= 0;	
-//						Char_Y_Motion <= 1; 
-//						end
-//						}
-//				
-//				//platform collision sides
-//				 else if ( (Ball_X_Pos + Ball_Size) >= Ball_X_Max )  // Ball is at the Right edge, BOUNCE!
-//					  Ball_X_Motion <= (~ (Ball_X_Step) + 1'b1);  // 2's complement.
-//					  
-//				 else if ( (Ball_X_Pos - Ball_Size) <= Ball_X_Min )  // Ball is at the Left edge, BOUNCE!
-//					  Ball_X_Motion <= Ball_X_Step;
-//				 else 
-//					  Ball_Y_Motion <= Ball_Y_Motion;  // Ball is somewhere in the middle, don't bounce, just keep moving
-//					  
-//					  
-//				// Jumping mechanic modelled after projectile motion	  
-//				 while (keycode == 8'h44) // if jump is pressed we check how long it's pressed and whether "A" or "D" are pressed when the key is released
-//					begin
-//						jump_val = jump_val + 1;
-//						if (keycode == 0)
-//							begin
-//								if (keycode == 8'h04)
-//									
-//							end
-//					end
-//				 
-//				 //
-////				 case (keycode)
-////					8'h04 : begin
-////										Char_X_Motion <= -;//A
-////										Char_Y_Motion<= 0;
-////							  end
-////					        
-////					8'h07 : begin
-////										Char_X_Motion <= ;//D
-////										Char_Y_Motion <= 0;
-////							  end
-//
-//							  
-////					8'h44 : begin
-////										Char_Y_Motion <= 1;//Space
-////										Char_X_Motion <= 0;
-////							 end
-//							  
-////  
-////					default: ;
-////			   endcase
-//				 
-//				 Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
-//				 Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
-//			
-//			
-//	  /**************************************************************************************
-//	    ATTENTION! Please answer the following quesiton in your lab report! Points will be allocated for the answers!
-//		 Hidden Question #2/2:
-//          Note that Ball_Y_Motion in the above statement may have been changed at the same clock edge
-//          that is causing the assignment of Ball_Y_pos.  Will the new value of Ball_Y_Motion be used,
-//          or the old?  How will this impact behavior of the ball during a bounce, and how might that 
-//          interact with a response to a keypress?  Can you fix it?  Give an answer in your Post-Lab.
-//      **************************************************************************************/
-//      
-//			
-//		end  
-//    end
-//       
-//    assign BallX = Ball_X_Pos;
-//   
-//    assign BallY = Ball_Y_Pos;
-//   
-//    assign BallS = Ball_Size;
-//    
-//
-//endmodule
+module  character ( input Reset, frame_clk, CLK,
+					input [7:0] keycode0, keycode1,
+               output [9:0]  CharX, CharY, CharS,
+					output [3:0] HEXstate,test,
+					output logic [31:0] space_count,j_count, arc_count);
+    
+    logic [9:0] Char_X_Pos, Char_X_Motion, Char_Y_Pos, Char_Y_Motion, Char_Size;
+	 logic space_reset,space_en,jump_reset,jump_en, arc_reset, arc_en;
+	 logic right_collide , left_collide, top_collide, bottom_collide, diagonal_collide;
+	 logic [3:0] screen_tracker;
+	 
+	 // Character starting point for each screen
+    parameter [9:0] Char_X_Start=320;  // Center position on the X axis
+    parameter [9:0] Char_Y_Start=410;  // Center position on the Y axis	 
+	 
+	 // Jump value
+	 
+	 //Character shape
+	 assign Char_Size = 4;  // assigns the value 4 as a 10-digit binary number, ie "0000000100"
+    parameter [9:0] Char_X_Min=110;       // Leftmost point on the X axis
+    parameter [9:0] Char_X_Max=432;     // Rightmost point on the X axis
+    parameter [9:0] Char_Y_Min=0;       // Topmost point on the Y axis
+    parameter [9:0] Char_Y_Max=479;     // Bottommost point on the Y axis originally 479
+	 
+	 //Character step size
+    parameter [9:0] Char_X_Step=1;      // Step size on the X axis
+    parameter [9:0] Char_Y_Step=1;      // Step size on the Y axis
+	 
+	//Various counters						
+	counter space_counter(.RESET(count_reset), .CLK(frame_clk), .enable (space_en), .max(15), .multi(3), .sec(space_count));
+	counter jump_counter(.RESET(count_reset), .CLK(frame_clk), .enable(jump_en), .max(15), .multi(1), .sec(j_count));	 
+	counter arc(.RESET(count_reset), .CLK(frame_clk), .enable(arc_en), .max(6), .multi(15), .sec(arc_count));
+//	counter wind_counter(.RESET(), .CLK(), .enable(), .max(5), .multi(60), .sec(wind_count))
+   
+	//screen change mechanic
+//	always_comb
+//		begin
+//			if //character touches top of screen
+//				begin
+//					screen_tracker = screen_tracker + 1;
+//				end
+//			if else //character touches bottom of screen
+//				begin
+//					screen_tracker = screen_tracker - 1;
+//				end
+//			else //character in the middle of the screen
+//				begin
+//					screen_tracker = screen_tracker;
+//				end
+//		end
+	
+	first_screen screen1(.Char_X_Pos(Char_X_Pos),
+								.Char_Y_Pos(Char_Y_Pos),
+								.Char_Size(Char_Size),
+								
+								.left_collide(left_collide),
+								.right_collide(right_collide),
+								.bottom_collide(bottom_collide),);
+	
+	//collsion calculation
+//	 always_comb
+//	 begin
+//		if ((left_collide1 && (screen_tracker == 1)) //checks to see if char touches left side 
+//			begin
+//			left_collide = 1;
+//			right_collide = 0;
+//			bottom_collide = 0;
+//			top_collide = 0;
+//			test = 4'b0001;
+//			end
+//		else if ((Char_X_Pos + Char_Size) >= Char_X_Max) //checks to see if char touches right side
+//			begin
+//			left_collide = 0;
+//			right_collide = 1;
+//			bottom_collide = 0;
+//			top_collide = 0;
+//			test = 4'b0010;				
+//			end
+//		else if ((Char_Y_Pos + Char_Size) >= (Char_Y_Max)) //checks to see if char touches the bottom 
+//			begin
+//			left_collide = 0;
+//			right_collide = 0;
+//			bottom_collide = 1;
+//			top_collide = 0;
+//			test = 4'b0000;
+//			end
+//		else if ((Char_Y_Pos - Char_Size) <= Char_Y_Min ) //checks to see if char touches the top
+//			begin
+//			left_collide = 0;
+//			right_collide = 0;
+//			bottom_collide = 0;
+//			top_collide = 1;
+//			test = 4'b0010;
+//			end
+//		else
+//			begin
+//			left_collide = 0;
+//			right_collide = 0;
+//			bottom_collide = 0;
+//			top_collide = 0;
+//			test = 4'b0000;
+//			end
+//	 end
+	
+	char_controller state_machine(.keycode0(keycode0),
+											.keycode1(keycode1),
+											
+											.CLK(frame_clk),
+											
+											.space_count(space_count),
+											.j_count(j_count),
+											.arc_count(arc_count),
+											
+											.left_collide(left_collide),
+											.right_collide(right_collide),
+											.bottom_collide(bottom_collide),
+													
+											.reset(Reset),
+											.Char_Size(Char_Size),
+											.count_reset(count_reset),
+											
+											.Char_X_Motion(Char_X_Motion), 
+											.Char_Y_Motion(Char_Y_Motion),
+											.Char_X_Pos(Char_X_Pos),
+											.Char_Y_Pos(Char_Y_Pos),
+											
+											.space_en(space_en), 
+											.jump_en(jump_en),
+											.arc_en(arc_en),
+										
+											.HEXstate(HEXstate),
+											); //controls character motion based off input
+								
+	assign CharX = Char_X_Pos;
+
+	assign CharY = Char_Y_Pos;
+
+	assign CharS = Char_Size;
+ 
+
+endmodule
