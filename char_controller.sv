@@ -47,7 +47,12 @@ always_ff @ (posedge CLK)
 		else if (ts_collide)
 			begin
 				Char_X_Pos <= Char_X_Pos;
-				Char_Y_Pos <= 471;
+				Char_Y_Pos <= 436;
+			end
+		else if (bs_collide)
+			begin
+				Char_X_Pos <= Char_X_Pos;
+				Char_Y_Pos <= 40;
 			end
 		else
 			begin
@@ -182,6 +187,8 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart
+				else if (right_collide)// if hit right edge then bounce left
+					next_state = N;
 				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle
 			end
@@ -189,6 +196,8 @@ count_reset = 0;
 			begin
 				if (reset)
 					next_state = A; //restart	
+				else if (left_collide) // if hit left edge then bounce right
+					next_state = M;
 				else if (bottom_collide) // if character hits floor
 					next_state = B; //idle			
 			end
